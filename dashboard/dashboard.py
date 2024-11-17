@@ -1,6 +1,7 @@
 from .input_section import InputSection
 from .preferences_section import PreferencesSection
 from .mode_section import ModeSelection
+from dashboard.serial_console import SerialConsole
 from tkinter import ttk
 import tkinter
 import sv_ttk
@@ -13,12 +14,12 @@ class Dashboard:
         self.main_frame = ttk.Frame(root, padding=10)
         self.main_frame.pack(fill="both", expand=True)
 
-        self.title_label = ttk.Label(self.main_frame, text="Dashboard", font=("Arial", 20))
+        self.title_label = ttk.Label(self.main_frame, text="H.E.L.I.O.S. Dashboard", font=("Arial", 20))
         self.title_label.pack(pady=10)
-
-        # Sections
-        self.input_section = InputSection(self.main_frame)
-        self.input_section.pack(fill="x", pady=5)
+        
+        # Add Serial Console
+        self.serial_console = SerialConsole(self.main_frame)
+        self.serial_console.pack(fill="both", expand=True, pady=10)
 
         self.preferences_section = PreferencesSection(self.main_frame)
         self.preferences_section.pack(fill="x", pady=5)
@@ -29,7 +30,7 @@ class Dashboard:
         # Buttons
         self.show_button = ttk.Button(self.main_frame, text="Show Info", command=self.toggle_info)
         self.show_button.pack(pady=10)
-        self.quit_button = ttk.Button(self.main_frame, text="Quit", command=root.destroy)
+        self.quit_button = ttk.Button(self.main_frame, text="Quit", command=self.close)
         self.quit_button.pack(pady=10)
 
         # Info display frame
@@ -45,7 +46,10 @@ class Dashboard:
         elif theme_name.lower() == "dark":
             sv_ttk.use_dark_theme()
         
-
+    def close(self):
+        """Close the application and stop the serial console."""
+        self.serial_console.close()
+        self.root.destroy()
     
     def show(self):
         self.main_frame.pack(fill="both", expand=True)
@@ -59,11 +63,11 @@ class Dashboard:
             self.info_visible = False
         else:
             # Gather user info
-            name = self.input_section.get_name()
             preferences = self.preferences_section.get_preferences()
 
         info = (
-            f"Version:0.1.3\n"
+            f"Version:0.1.4 of the:\n"
+            f"Hardware Endpoint Launch Interface Operation System\n"
             f"Preferences:\n"
             f"  - Preference 1: {preferences['Preference 1']}\n"
             f"  - Preference 2: {preferences['Preference 2']}\n"
@@ -73,11 +77,12 @@ class Dashboard:
 
         self.info_label.config(text=info)
 
-        # Calculate bottom-left corner position
+        # Calculate bottom-right corner position
         self.info_frame.update_idletasks()  # Ensure widget dimensions are calculated
+        frame_width = self.info_frame.winfo_width()
         frame_height = self.info_frame.winfo_height()
-        x = 10
-        y = self.root.winfo_height() - frame_height - 10
+        x = self.root.winfo_width() - frame_width - 10  # Right side with some padding
+        y = self.root.winfo_height() - frame_height - 10  # Bottom side with some padding
 
         # Place the info frame
         self.info_frame.place(x=x, y=y)
