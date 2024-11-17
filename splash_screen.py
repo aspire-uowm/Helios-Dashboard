@@ -1,6 +1,7 @@
 import tkinter
 from tkinter import ttk
 from PIL import Image, ImageTk
+
 #does the splash screen actually do anything? -no
 #is the splash screen cool? -yes
 
@@ -37,6 +38,6 @@ class SplashScreen:
     def open_dashboard(self):
         # Remove splash screen elements and display the main dashboard
         self.splash_frame.pack_forget()  # Hide splash content
-        from dashboard import Dashboard  # Import Dashboard class
+        from dashboard.dashboard import Dashboard  # Import Dashboard class
         dashboard = Dashboard(self.root)  # Create and show the dashboard
         dashboard.show()  # Show the dashboard UI
