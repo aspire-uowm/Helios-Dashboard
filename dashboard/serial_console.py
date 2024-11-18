@@ -23,32 +23,39 @@ class SerialConsole(ttk.Frame):
         self.port_combobox = ttk.Combobox(self, state="readonly", width=30)
         self.port_combobox.pack(pady=5)
 
-        self.refresh_button = ttk.Button(self, text="Refresh Ports", command=self.detect_ports)
-        self.refresh_button.pack(pady=5)
+        # Create a frame for connection buttons
+        self.button_frame = ttk.Frame(self)
+        self.button_frame.pack(pady=5)
 
-        self.connect_button = ttk.Button(self, text="Connect", command=self.connect_to_port)
-        self.connect_button.pack(pady=5)
+        self.refresh_button = ttk.Button(self.button_frame, text="Refresh Ports", command=self.detect_ports)
+        self.refresh_button.pack(side="left", padx=2)
 
-        self.disconnect_button = ttk.Button(self, text="Disconnect", command=self.disconnect_from_port, state="disabled")
-        self.disconnect_button.pack(pady=5)
+        self.connect_button = ttk.Button(self.button_frame, text="Connect", command=self.connect_to_port)
+        self.connect_button.pack(side="left", padx=2)
+
+        self.disconnect_button = ttk.Button(self.button_frame, text="Disconnect", command=self.disconnect_from_port, state="disabled")
+        self.disconnect_button.pack(side="left", padx=2)
 
         # Add a text widget to display serial data
         self.output_text = tk.Text(self, height=15, width=50, state="disabled", wrap="word")
         self.output_text.pack(padx=5, pady=10)
 
-        # Add buttons for clear and logging
-        self.clear_button = ttk.Button(self, text="Clear Console", command=self.clear_console)
-        self.clear_button.pack(pady=5)
+        # Create a frame for action buttons
+        self.action_button_frame = ttk.Frame(self)
+        self.action_button_frame.pack(pady=5)
 
-        self.logging_button = ttk.Button(self, text="Start Logging", command=self.toggle_logging)
-        self.logging_button.pack(pady=5)
+        self.clear_button = ttk.Button(self.action_button_frame, text="Clear Console", command=self.clear_console)
+        self.clear_button.pack(side="left", padx=2)
 
-        # Add an entry widget and button for sending commands
+        self.logging_button = ttk.Button(self.action_button_frame, text="Start Logging", command=self.toggle_logging)
+        self.logging_button.pack(side="left", padx=2)
+
+        self.send_button = ttk.Button(self.action_button_frame, text="Send", command=self.send_command)
+        self.send_button.pack(side="left", padx=2)
+
+        # Add an entry widget for sending commands
         self.command_entry = ttk.Entry(self)
         self.command_entry.pack(fill="x", padx=5, pady=5)
-
-        self.send_button = ttk.Button(self, text="Send", command=self.send_command)
-        self.send_button.pack(pady=5)
 
         # Detect available ports
         self.detect_ports()
