@@ -1,4 +1,3 @@
-from .input_section import InputSection
 from .preferences_section import PreferencesSection
 from .mode_section import ModeSelection
 from dashboard.serial_console import SerialConsole
@@ -16,8 +15,7 @@ class Dashboard:
 
         self.title_label = ttk.Label(self.main_frame, text="H.E.L.I.O.S. Dashboard", font=("Arial", 20))
         self.title_label.pack(pady=10)
-        
-        # Add Serial Console
+    
 
         # Add serial console and place it at the top-right corner
         self.serial_console = SerialConsole(self.root)  # Attach to root directly
@@ -25,8 +23,7 @@ class Dashboard:
             relx=1.0, 
             rely=0.0, 
             anchor="ne", 
-            width=300,  # Fixed width for the console
-            height=self.root.winfo_height() // 1.2
+            width=350,  # Fixed width for the console
         )
         self.preferences_section = PreferencesSection(self.main_frame)
         self.preferences_section.pack(fill="x", pady=5)
@@ -52,12 +49,20 @@ class Dashboard:
             sv_ttk.use_light_theme()
         elif theme_name.lower() == "dark":
             sv_ttk.use_dark_theme()
+
+    def quit_app(self):
+        """Handle application exit."""
+        # Ensure the SerialConnection stops
+        if hasattr(self, 'serial_console') and self.serial_console.serial_connection:
+            self.serial_console.serial_connection.stop()
+        self.root.quit()
         
     def close(self):
         """Close the application and stop the serial console."""
-        self.serial_console.close()
+        self.quit_app()
         self.root.destroy()
-    
+
+
     def show(self):
         self.main_frame.pack(fill="both", expand=True)
         self.main_frame.after(1000, self.main_frame.update)

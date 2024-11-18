@@ -1,4 +1,4 @@
-pip install tk
-pip install sv_ttk
-pip install pillow
-pip install pyserial
+tk
+sv_ttk
+pillow
+pyserial
