@@ -1,68 +1,109 @@
+import serial
+import serial.tools.list_ports
+import threading
 import tkinter as tk
 from tkinter import ttk
-import serial
-import threading
 
 class SerialConsole(ttk.Frame):
-    """A console for serial communication with the ESP32."""
-    def __init__(self, parent, port="/dev/ttyUSB0", baudrate=9600):
+    """Serial console for displaying data and sending commands."""
+
+    def __init__(self, parent):
         super().__init__(parent)
-        self.serial_port = None
-        self.running = True
+        self.serial_connection = None
+        self.read_thread = None
+        self.running = False
 
-        # Console UI
-        self.text_area = tk.Text(self, height=15, wrap="word", state="disabled")
-        self.text_area.pack(fill="both", expand=True, padx=10, pady=10)
+        # Add widgets for port selection and connection
+        self.port_label = ttk.Label(self, text="Select Serial Port:")
+        self.port_label.pack(pady=5)
 
-        self.input_field = ttk.Entry(self)
-        self.input_field.pack(fill="x", padx=10, pady=(0, 10))
-        self.input_field.bind("<Return>", self.send_command)
+        self.port_combobox = ttk.Combobox(self, state="readonly", width=30)
+        self.port_combobox.pack(pady=5)
+
+        self.connect_button = ttk.Button(self, text="Connect", command=self.connect_to_port)
+        self.connect_button.pack(pady=5)
+
+        # Add a text widget to display serial data
+        self.output_text = tk.Text(self, height=15, width=40, state="disabled", wrap="word")
+        self.output_text.pack(padx=5, pady=10)
+
+        # Add an entry widget and button for sending commands
+        self.command_entry = ttk.Entry(self)
+        self.command_entry.pack(fill="x", padx=5, pady=5)
 
         self.send_button = ttk.Button(self, text="Send", command=self.send_command)
         self.send_button.pack(pady=5)
 
-        # Attempt to connect to the serial port
-        try:
-            self.serial_port = serial.Serial(port, baudrate, timeout=1)
-            self.listener_thread = threading.Thread(target=self.listen_to_serial, daemon=True)
-            self.listener_thread.start()
-        except serial.SerialException as e:
-            self.display_message(f"Error: Could not connect to serial port {port}\n{e}")
+        # Detect available ports
+        self.detect_ports()
 
-    def listen_to_serial(self):
-        """Continuously read from the serial port and display data."""
-        while self.running and self.serial_port and self.serial_port.is_open:
-            if self.serial_port.in_waiting:
-                try:
-                    data = self.serial_port.readline().decode("utf-8").strip()
-                    self.display_message(data)
-                except Exception as e:
-                    self.display_message(f"Error reading serial: {e}")
+    def detect_ports(self):
+        """Detect and list available serial ports."""
+        ports = [port.device for port in serial.tools.list_ports.comports()]
+        if ports:
+            self.port_combobox["values"] = ports
+            self.port_combobox.current(0)  # Auto-select the first port
+        else:
+            self.port_combobox["values"] = ["No ports found"]
+            self.port_combobox.current(0)
 
-    def display_message(self, message):
-        """Display a message in the text area."""
-        self.text_area.config(state="normal")
-        self.text_area.insert("end", message + "\n")
-        self.text_area.config(state="disabled")
-        self.text_area.see("end")  # Auto-scroll to the latest message
-
-    def send_command(self, event=None):
-        """Send a command to the ESP32."""
-        if not self.serial_port or not self.serial_port.is_open:
-            self.display_message("Error: Serial port not connected.")
+    def connect_to_port(self):
+        """Connect to the selected serial port and start reading data."""
+        selected_port = self.port_combobox.get()
+        if selected_port == "No ports found":
+            self.append_to_console("No serial ports available.")
             return
 
-        command = self.input_field.get()
+        try:
+            self.serial_connection = serial.Serial(selected_port, baudrate=9600, timeout=1)
+            self.append_to_console(f"Connected to {selected_port}")
+
+            # Start the thread to read data from the serial port
+            self.running = True
+            self.read_thread = threading.Thread(target=self.read_from_port, daemon=True)
+            self.read_thread.start()
+        except serial.SerialException as e:
+            self.append_to_console(f"SerialException: {e}")
+        except Exception as e:
+            self.append_to_console(f"Unexpected error: {e}")
+
+    def read_from_port(self):
+        """Continuously read data from the serial port and display it in the console."""
+        while self.running:
+            try:
+                if self.serial_connection and self.serial_connection.in_waiting:
+                    data = self.serial_connection.read(self.serial_connection.in_waiting).decode("utf-8")
+                    self.append_to_console(data)
+            except Exception as e:
+                self.append_to_console(f"Error reading from port: {e}")
+                self.running = False
+                break
+
+    def append_to_console(self, message):
+        """Append a message to the serial console."""
+        self.output_text.config(state="normal")
+        self.output_text.insert("end", message)
+        self.output_text.see("end")
+        self.output_text.config(state="disabled")
+
+    def send_command(self):
+        """Send a command to the serial device."""
+        if not self.serial_connection or not self.serial_connection.is_open:
+            self.append_to_console("Not connected to any serial port.")
+            return
+
+        command = self.command_entry.get().strip()
         if command:
             try:
-                self.serial_port.write(f"{command}\n".encode("utf-8"))
-                self.display_message(f"> {command}")
-                self.input_field.delete(0, "end")
+                self.serial_connection.write(command.encode("utf-8"))
+                self.append_to_console(f"Sent: {command}")
+                self.command_entry.delete(0, "end")
             except Exception as e:
-                self.display_message(f"Error sending command: {e}")
+                self.append_to_console(f"Error sending command: {e}")
 
     def close(self):
-        """Safely close the serial port and stop the thread."""
+        """Close the serial connection."""
         self.running = False
-        if self.serial_port and self.serial_port.is_open:
-            self.serial_port.close()
+        if self.serial_connection and self.serial_connection.is_open:
+            self.serial_connection.close()
+            self.append_to_console("Serial connection closed.")

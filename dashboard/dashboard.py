@@ -18,9 +18,16 @@ class Dashboard:
         self.title_label.pack(pady=10)
         
         # Add Serial Console
-        self.serial_console = SerialConsole(self.main_frame)
-        self.serial_console.pack(fill="both", expand=True, pady=10)
 
+        # Add serial console and place it at the top-right corner
+        self.serial_console = SerialConsole(self.root)  # Attach to root directly
+        self.serial_console.place(
+            relx=1.0, 
+            rely=0.0, 
+            anchor="ne", 
+            width=300,  # Fixed width for the console
+            height=self.root.winfo_height() // 1.2
+        )
         self.preferences_section = PreferencesSection(self.main_frame)
         self.preferences_section.pack(fill="x", pady=5)
 
