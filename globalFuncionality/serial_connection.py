@@ -23,9 +23,13 @@ class SerialConnection:
         if self.serial_connection:
             self.disconnect()
 
-        self.serial_connection = serial.Serial(port, baudrate=self.baudrate, timeout=self.timeout)
-        self.running = True
-        self.start_reading()
+        try:
+            self.serial_connection = serial.Serial(port, baudrate=self.baudrate, timeout=self.timeout)
+            self.running = True
+            self.start_reading()
+        except serial.SerialException as e:
+            if self.callback:
+                self.callback(f"Error connecting to port {port}: {e}")
 
     def disconnect(self):
         """Disconnect from the serial port."""
@@ -47,7 +51,8 @@ class SerialConnection:
         while self.running:
             try:
                 if self.serial_connection.in_waiting:
-                    data = self.serial_connection.read(self.serial_connection.in_waiting).decode("utf-8")
+                    # Read and decode with error handling
+                    data = self.serial_connection.read(self.serial_connection.in_waiting).decode(errors="replace")
                     if self.callback:
                         self.callback(data)
             except Exception as e:
@@ -59,7 +64,11 @@ class SerialConnection:
         """Write data to the serial port."""
         if not self.serial_connection or not self.serial_connection.is_open:
             raise RuntimeError("Serial connection is not open.")
-        self.serial_connection.write(data.encode("utf-8"))
+        try:
+            self.serial_connection.write(data.encode("utf-8"))
+        except Exception as e:
+            if self.callback:
+                self.callback(f"Error writing to serial: {e}")
 
     def set_callback(self, callback):
         """Set a callback function to handle incoming data."""

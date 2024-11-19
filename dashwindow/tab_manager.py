@@ -37,9 +37,9 @@ class TabManager(ttk.Frame):
         button_frame = ttk.Frame(self)
         button_frame.pack(side="top", anchor="w", padx=10, pady=5)
 
-        ttk.Button(button_frame, text="DashTab 1", command=lambda: self.switch_tab(0)).pack(side="left", padx=5)
-        ttk.Button(button_frame, text="DashTab 2", command=lambda: self.switch_tab(1)).pack(side="left", padx=5)
-        ttk.Button(button_frame, text="DashTab 3", command=lambda: self.switch_tab(2)).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Dashboard page 1", command=lambda: self.switch_tab(0)).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Dashboard page 2", command=lambda: self.switch_tab(1)).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Dashboard page 3", command=lambda: self.switch_tab(2)).pack(side="left", padx=5)
 
     def switch_tab(self, index):
         """Switch to the tab at the given index."""
