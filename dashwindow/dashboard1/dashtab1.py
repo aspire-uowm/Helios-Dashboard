@@ -1,16 +1,18 @@
 from .preferences_section import PreferencesSection
 from .mode_section import ModeSelection
-from dashboard.serial_console import SerialConsole
+from dashwindow.dashboard1.serial_console import SerialConsole
 from tkinter import ttk
 import tkinter
 import sv_ttk
 
 
-class Dashboard:
+class DashTab1(ttk.Frame):
     """Main dashboard class."""
-    def __init__(self, root):
-        self.root = root
-        self.main_frame = ttk.Frame(root, padding=10)
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.root = parent
+        self.main_frame = ttk.Frame(self.root, padding=10)
         self.main_frame.pack(fill="both", expand=True)
 
         self.title_label = ttk.Label(self.main_frame, text="H.E.L.I.O.S. Dashboard", font=("Arial", 20))
@@ -25,8 +27,6 @@ class Dashboard:
             anchor="ne", 
             width=350,  # Fixed width for the console
         )
-        self.preferences_section = PreferencesSection(self.main_frame)
-        self.preferences_section.pack(fill="x", pady=5)
 
         self.mode_section = ModeSelection(self.main_frame, on_theme_change=self.change_theme)
         self.mode_section.pack(fill="x", pady=5)
@@ -64,8 +64,8 @@ class Dashboard:
 
 
     def show(self):
-        self.main_frame.pack(fill="both", expand=True)
-        self.main_frame.after(1000, self.main_frame.update)
+        self.root.main_frame.pack(fill="both", expand=True)
+        self.root.main_frame.after(1000, self.root.main_frame.update)
 
     def toggle_info(self):
         """Toggle the visibility of the user info in the bottom-left corner."""
@@ -74,15 +74,11 @@ class Dashboard:
             self.info_frame.place_forget()
             self.info_visible = False
         else:
-            # Gather user info
-            preferences = self.preferences_section.get_preferences()
+            pass
 
         info = (
             f"Version:0.1.4 of the:\n"
             f"Hardware Endpoint Launch Interface Operation System\n"
-            f"Preferences:\n"
-            f"  - Preference 1: {preferences['Preference 1']}\n"
-            f"  - Preference 2: {preferences['Preference 2']}\n"
             f"Helios Dashboard for Solaris rocket avionics division\n"
             f"-Written by Orfeas Nikas\n"
         )

@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from dashboard.serial_connection import SerialConnection
+from globalFuncionality.serial_connection import SerialConnection
 
 class SerialConsole(ttk.Frame):
     """Serial console GUI for displaying and interacting with serial data."""

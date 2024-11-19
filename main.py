@@ -1,5 +1,5 @@
 import tkinter
-from splash_screen import SplashScreen
+from dashwindow.splash_screen import SplashScreen
 import sv_ttk
 
 
