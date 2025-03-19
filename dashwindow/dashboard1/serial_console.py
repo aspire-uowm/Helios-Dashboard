@@ -2,12 +2,14 @@ import tkinter as tk
 from tkinter import ttk
 from globalFuncionality.serial_connection import SerialConnection
 
+
 class SerialConsole(ttk.Frame):
     """Serial console GUI for displaying and interacting with serial data."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, serial_connection=None):
         super().__init__(parent)
-        self.serial_connection = SerialConnection()
+        # Use the provided serial connection or create a new one if not provided.
+        self.serial_connection = serial_connection if serial_connection is not None else SerialConnection()
         self.serial_connection.set_callback(self.append_to_console)
 
         # UI for port selection
@@ -27,17 +29,14 @@ class SerialConsole(ttk.Frame):
         self.connect_button = ttk.Button(self.connection_button_frame, text="Connect", command=self.connect_to_port)
         self.connect_button.grid(row=0, column=1, padx=5)
 
-        self.disconnect_button = ttk.Button(self.connection_button_frame, text="Disconnect", command=self.disconnect_from_port, state="disabled")
+        self.disconnect_button = ttk.Button(self.connection_button_frame, text="Disconnect",
+                                            command=self.disconnect_from_port, state="disabled")
         self.disconnect_button.grid(row=0, column=2, padx=5)
 
         # Console display
         self.output_text = tk.Text(self, height=15, width=50, state="disabled", wrap="word")
         self.output_text.grid(row=2, column=0, columnspan=2, padx=5, pady=10)
-        
-        # Add an entry widget for sending commands
-        self.command_entry = ttk.Entry(self)
-        self.command_entry.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
-        
+
         # Create a frame for action buttons (Clear Console, Send, etc.)
         self.action_button_frame = ttk.Frame(self)
         self.action_button_frame.grid(row=3, column=0, columnspan=2, pady=5)
@@ -51,7 +50,9 @@ class SerialConsole(ttk.Frame):
         self.send_button = ttk.Button(self.action_button_frame, text="Send", command=self.send_command)
         self.send_button.grid(row=5, column=2, padx=5)
 
-       
+        # Add an entry widget for sending commands
+        self.command_entry = ttk.Entry(self)
+        self.command_entry.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
 
         # Refresh the list of available ports
         self.refresh_ports()
@@ -98,9 +99,13 @@ class SerialConsole(ttk.Frame):
         self.disconnect_button["state"] = "disabled"
 
     def append_to_console(self, message):
-        """Append a message to the console."""
+        """Schedule appending a message to the console in the main thread."""
+        self.after(0, self._append_text, message)
+
+    def _append_text(self, message):
+        """Append a message to the console (runs on main thread)."""
         self.output_text.config(state="normal")
-        self.output_text.insert("end", message)  # Add newline after each message
+        self.output_text.insert("end", message)  # Newline should be included by caller if needed.
         self.output_text.see("end")
         self.output_text.config(state="disabled")
 

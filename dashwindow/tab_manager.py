@@ -1,22 +1,27 @@
-from tkinter import ttk
 from dashwindow.dashboard1.dashtab1 import DashTab1
 from dashwindow.dashboard2.dashtab2 import DashTab2
 from dashwindow.dashboard3.dashtab3 import DashTab3
+from globalFuncionality.serial_connection import SerialConnection
+from tkinter import ttk
 
 
 class TabManager(ttk.Frame):
     """Manages tabs and allows switching via buttons and hotkeys."""
-
     def __init__(self, parent):
         super().__init__(parent)
 
         # Initialize notebook
         self.notebook = ttk.Notebook(self)
-        self.notebook.pack(expand=True, fill="both", side="bottom")
-
+        self.notebook.pack(expand=True, fill="both")
+        # Create a centralized SerialConnection instance
+        self.serial_connection = SerialConnection(baudrate=9600, timeout=1)
+        # Optionally, auto-connect here if desired:
+        available_ports = self.serial_connection.detect_ports()
+        if available_ports:
+            self.serial_connection.connect(available_ports[0])
         # Tabs
-        self.dashtab1 = DashTab1(self.notebook)
-        self.dashtab2 = DashTab2(self.notebook)
+        self.dashtab1 = DashTab1(self.notebook, self.serial_connection)
+        self.dashtab2 = DashTab2(self.notebook, self.serial_connection)
         self.dashtab3 = DashTab3(self.notebook)
 
         # Add tabs to notebook
@@ -36,10 +41,6 @@ class TabManager(ttk.Frame):
         """Create buttons to switch tabs."""
         button_frame = ttk.Frame(self)
         button_frame.pack(side="top", anchor="w", padx=10, pady=5)
-
-        ttk.Button(button_frame, text="Dashboard page 1", command=lambda: self.switch_tab(0)).pack(side="left", padx=5)
-        ttk.Button(button_frame, text="Dashboard page 2", command=lambda: self.switch_tab(1)).pack(side="left", padx=5)
-        ttk.Button(button_frame, text="Dashboard page 3", command=lambda: self.switch_tab(2)).pack(side="left", padx=5)
 
     def switch_tab(self, index):
         """Switch to the tab at the given index."""
